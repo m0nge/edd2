@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario de Examen — Java & Estructuras de Datos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e2a;
+    --border: #252a38;
+    --accent: #f0c040;
+    --accent2: #40c8f0;
+    --accent3: #f04070;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --correct: #34d399;
+    --wrong: #f87171;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px 0;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 28px 40px 22px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  header h1 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  #scoreboard {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+  }
+
+  .score-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 6px 16px;
+    color: var(--text);
+  }
+
+  .score-pill span { color: var(--accent); font-weight: 700; }
+
+  #progress-wrap {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    position: sticky;
+    top: 76px;
+    z-index: 99;
+  }
+
+  #progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* NAV TABS */
+  nav {
+    display: flex;
+    gap: 6px;
+    padding: 24px 40px 0;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 8px 18px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .tab-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0d0f14;
+  }
+
+  /* SECTIONS */
+  .section {
+    display: none;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .section.visible { display: block; }
+
+  .section-header {
+    margin-bottom: 32px;
+  }
+
+  .chapter-tag {
+    display: inline-block;
+    background: var(--accent);
+    color: #0d0f14;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    padding: 4px 12px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .section-header h2 {
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .section-header p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 8px;
+  }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .question-card.answered-correct { border-color: var(--correct); }
+  .question-card.answered-wrong   { border-color: var(--wrong); }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 20px 22px 16px;
+  }
+
+  .q-num {
+    background: var(--surface2);
+    border-radius: 6px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    min-width: 36px;
+    padding: 4px 6px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .q-text {
+    font-size: 0.97rem;
+    font-weight: 600;
+    line-height: 1.55;
+  }
+
+  .q-code {
+    background: #0a0c10;
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 6px 6px 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    margin: 0 22px 16px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    white-space: pre;
+    color: #c9d1e0;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 22px 20px;
+  }
+
+  .option-btn {
+    align-items: flex-start;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    gap: 12px;
+    padding: 11px 16px;
+    text-align: left;
+    transition: all 0.18s;
+    width: 100%;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--accent2);
+    background: #1e2434;
+  }
+
+  .opt-letter {
+    background: var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    flex-shrink: 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    text-transform: uppercase;
+    transition: all 0.18s;
+  }
+
+  .option-btn.correct {
+    background: rgba(52,211,153,0.1);
+    border-color: var(--correct);
+  }
+  .option-btn.correct .opt-letter {
+    background: var(--correct);
+    color: #0d0f14;
+  }
+
+  .option-btn.wrong {
+    background: rgba(248,113,113,0.1);
+    border-color: var(--wrong);
+  }
+  .option-btn.wrong .opt-letter {
+    background: var(--wrong);
+    color: #0d0f14;
+  }
+
+  .option-btn:disabled { cursor: default; }
+
+  /* FEEDBACK */
+  .feedback {
+    display: none;
+    font-size: 0.83rem;
+    margin: -4px 22px 16px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    line-height: 1.5;
+  }
+
+  .feedback.show { display: block; }
+  .feedback.ok  { background: rgba(52,211,153,0.1); color: var(--correct); border: 1px solid rgba(52,211,153,0.3); }
+  .feedback.no  { background: rgba(248,113,113,0.1); color: var(--wrong);   border: 1px solid rgba(248,113,113,0.3); }
+
+  /* RESET BTN */
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    padding: 7px 16px;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* SECTION SCORE */
+  .section-score {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px;
+    margin-bottom: 28px;
+    font-size: 0.88rem;
+  }
+
+  .section-score strong { color: var(--accent); font-family: 'Space Mono', monospace; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 Cuestionario de Examen</h1>
+  <div id="scoreboard">
+    <div class="score-pill">Correctas: <span id="total-correct">0</span></div>
+    <div class="score-pill">Total resp.: <span id="total-answered">0</span></div>
+    <button class="reset-btn" onclick="resetAll()">↺ Reiniciar todo</button>
+  </div>
+</header>
+
+<div id="progress-wrap"><div id="progress-bar"></div></div>
+
+<nav id="tab-nav">
+  <button class="tab-btn active" onclick="showSection(0)">Cap. 7 — Métodos</button>
+  <button class="tab-btn" onclick="showSection(1)">Cap. 13 — Recursión</button>
+  <button class="tab-btn" onclick="showSection(2)">Cap. 14 — Búsqueda y Ord.</button>
+  <button class="tab-btn" onclick="showSection(3)">Cap. 9 — Pilas</button>
+  <button class="tab-btn" onclick="showSection(4)">Cap. 10 — Colas</button>
+</nav>
+
+<div id="sections-container"></div>
+
+<script>
+// =============================================================
+// DATA — 100 questions across 5 chapters
+// =============================================================
+const chapters = [
+  {
+    id: 0,
+    tag: "Capítulo 7",
+    title: "Métodos definidos por el usuario",
+    desc: "20 preguntas sobre métodos predefinidos, métodos con retorno de valor, métodos vacíos, parámetros, alcance, sobrecarga y stubs.",
+    questions: [
+      {
+        q: "¿Cuál es la diferencia fundamental entre un método predefinido y un método definido por el usuario en Java?",
+        opts: ["Los métodos predefinidos siempre retornan void, los definidos por el usuario nunca lo hacen.", "Los métodos predefinidos ya están escritos y proporcionados por Java, mientras que los definidos por el usuario los escribe el programador.", "Los métodos predefinidos no pueden tener parámetros, los definidos por el usuario sí.", "Los métodos predefinidos están en el paquete java.util y los definidos por el usuario en java.lang."],
+        ans: 1,
+        exp: "Los métodos predefinidos vienen con Java (como Math.pow, sqrt, etc.), mientras que los definidos por el usuario los elabora el propio programador."
+      },
+      {
+        q: "Para usar métodos de la clase Math sin escribir 'Math.' antes de cada llamada, ¿qué instrucción se debe incluir?",
+        opts: ["import java.lang.Math;", "import static java.lang.Math.*;", "import Math.*;", "use static java.lang.Math.*;"],
+        ans: 1,
+        exp: "La instrucción 'import static java.lang.Math.*;' permite usar métodos static de Math directamente sin el prefijo de clase."
+      },
+      {
+        q: "¿Qué valor retorna Math.ceil(35.2)?",
+        opts: ["35.0", "35.2", "36.0", "35"],
+        ans: 2,
+        exp: "ceil() retorna el entero más pequeño no menor que x, es decir, redondea hacia arriba. ceil(35.2) = 36.0."
+      },
+      {
+        q: "¿Qué valor retorna Math.floor(65.78)?",
+        opts: ["66.0", "65.78", "65.0", "65"],
+        ans: 2,
+        exp: "floor() retorna el entero más grande que no supera a x, es decir, redondea hacia abajo. floor(65.78) = 65.0."
+      },
+      {
+        q: "En la definición de un método, ¿cómo se llaman las variables declaradas en el encabezado del método?",
+        opts: ["Parámetros actuales", "Variables locales", "Parámetros formales", "Argumentos de invocación"],
+        ans: 2,
+        exp: "Las variables declaradas en el encabezado del método se denominan parámetros formales. Los parámetros actuales son los usados en la invocación."
+      },
+      {
+        q: "¿Cuál es la sintaxis correcta para un método con retorno de valor definido por el usuario?",
+        opts: ["void nombreMetodo(lista) { instrucciones }", "modificador(es) tipoRetorno nombreMetodo(lista de parámetros formales) { instrucciones }", "static nombreMetodo(lista) : tipoRetorno { instrucciones }", "public nombreMetodo() void { instrucciones }"],
+        ans: 1,
+        exp: "La sintaxis correcta incluye modificadores, tipo de retorno, nombre y lista de parámetros formales entre paréntesis, seguido del cuerpo entre llaves."
+      },
+      {
+        q: "Un método con retorno de valor devuelve su resultado mediante la instrucción:",
+        opts: ["yield", "output", "return", "give"],
+        ans: 2,
+        exp: "La instrucción 'return expr;' evalúa la expresión y devuelve el valor al método invocador. Java usa la palabra reservada return."
+      },
+      {
+        q: "¿Qué ocurre cuando se ejecuta una instrucción return dentro de un método?",
+        opts: ["El método pausa su ejecución y espera una nueva llamada.", "El método termina inmediatamente y el control regresa al solicitante.", "Solo retorna si el tipo coincide, de lo contrario continúa.", "Se imprime el valor en consola automáticamente."],
+        ans: 1,
+        exp: "Al ejecutarse return, el método termina de inmediato y el control vuelve al punto de invocación. Las instrucciones siguientes se saltan."
+      },
+      {
+        q: "¿En cuántas formas se puede usar típicamente el valor retornado por un método con retorno de valor?",
+        opts: ["Solo en instrucciones de salida.", "Solo asignándolo a una variable.", "Guardarlo para un cálculo posterior, usarlo en un cálculo o imprimirlo.", "Solo pasarlo como parámetro a otro método."],
+        ans: 2,
+        exp: "El valor retornado puede: guardarse en una variable, usarse en una expresión/cálculo, o imprimirse directamente."
+      },
+      {
+        q: "¿Cuál es la diferencia entre un método vacío (void) y un método con retorno de valor?",
+        opts: ["Un método vacío no puede tener parámetros, el otro sí.", "Un método vacío no devuelve un valor de tipo específico usando return; el otro sí.", "Un método vacío solo puede invocarse desde main, el otro desde cualquier método.", "Un método vacío es siempre private, el otro es siempre public."],
+        ans: 1,
+        exp: "Los métodos void no tienen tipo de dato de retorno y no usan return para devolver un valor. Los métodos con retorno sí especifican el tipo y usan return."
+      },
+      {
+        q: "¿Cómo se invoca un método vacío (void) correctamente?",
+        opts: ["Dentro de una expresión aritmética.", "Como parte de una instrucción de asignación.", "Como una instrucción autónoma: nombreMetodo(parametros);", "Solo puede invocarse desde el método main."],
+        ans: 2,
+        exp: "Los métodos void se invocan como instrucciones independientes, no dentro de expresiones, ya que no retornan un valor utilizable."
+      },
+      {
+        q: "Si un parámetro formal es de tipo primitivo (int, double, etc.), ¿qué sucede si se modifica dentro del método?",
+        opts: ["El parámetro actual también cambia porque comparten la misma memoria.", "No tiene efecto sobre el parámetro actual; el parámetro formal tiene su propia copia.", "Lanza una excepción de compilación.", "Java lo impide con un error en tiempo de ejecución."],
+        ans: 1,
+        exp: "Con tipos primitivos, el valor se copia al parámetro formal. Los cambios al formal no afectan al actual; son independientes después de la copia."
+      },
+      {
+        q: "¿Qué diferencia existe entre pasar una variable String y una variable StringBuffer como parámetro, respecto a modificar su contenido?",
+        opts: ["No hay diferencia; ambas se comportan igual al modificarse.", "String puede modificarse con = pero StringBuffer no.", "Con String, el parámetro actual no cambia al usar =; con StringBuffer, usar append() sí cambia el objeto original.", "StringBuffer no puede pasarse como parámetro en Java."],
+        ans: 2,
+        exp: "String es inmutable; asignar = en el parámetro formal crea un nuevo objeto. StringBuffer sí permite modificar el objeto original desde el método usando sus métodos (append, delete)."
+      },
+      {
+        q: "El alcance (scope) de un identificador declarado dentro de un método se limita a:",
+        opts: ["Todo el programa desde ese punto en adelante.", "Solo el bloque donde se declara y los bloques anidados en ese bloque.", "Solo la línea donde se declara.", "Toda la clase en la que está definido el método."],
+        ans: 1,
+        exp: "Un identificador local es visible solo dentro del bloque desde donde se declara hasta el fin de ese bloque, incluyendo bloques anidados internos."
+      },
+      {
+        q: "¿Permite Java anidar definiciones de métodos? Es decir, ¿puede un método contener la definición completa de otro método?",
+        opts: ["Sí, siempre que el método interno sea private.", "No, Java no permite el anidado de métodos.", "Sí, si ambos métodos son static.", "Solo si el método externo es main."],
+        ans: 1,
+        exp: "Java no permite anidar métodos. La definición de un método no puede estar dentro del cuerpo de otro método."
+      },
+      {
+        q: "¿Qué es la sobrecarga de un método (method overloading)?",
+        opts: ["Llamar al mismo método más de 10 veces seguidas.", "Tener varios métodos con el mismo nombre dentro de una clase, pero con listas de parámetros formales diferentes.", "Heredar un método de una clase padre y redefinirlo.", "Usar el modificador static en un método que ya es public."],
+        ans: 1,
+        exp: "La sobrecarga permite definir múltiples métodos con el mismo nombre en una clase, siempre que difieran en el número o tipo de parámetros formales."
+      },
+      {
+        q: "La firma (signature) de un método en Java consiste en:",
+        opts: ["Solo el tipo de retorno del método.", "El nombre del método y su tipo de retorno.", "El nombre del método y su lista de parámetros formales.", "Los modificadores de acceso y el tipo de retorno."],
+        ans: 2,
+        exp: "La firma de un método es el nombre más la lista de parámetros formales. El tipo de retorno NO forma parte de la firma."
+      },
+      {
+        q: "¿Qué es un 'stub' de método en el contexto de depuración?",
+        opts: ["Un método que lanza una excepción siempre.", "Un método no completamente codificado que retorna un valor plausible, usado para probar otras partes del programa.", "Un método que imprime mensajes de debug.", "Un método marcado como @Deprecated."],
+        ans: 1,
+        exp: "Un stub es una implementación mínima de un método (ej: solo retorna un valor fijo) que permite que otras partes del programa que lo invocan se puedan compilar y probar."
+      },
+      {
+        q: "¿Qué es un 'driver' (programa de control) en el contexto de pruebas de métodos?",
+        opts: ["Un método que controla el hardware de entrada/salida.", "Un programa separado escrito específicamente para probar que un método funciona correctamente.", "El método main de cualquier programa.", "Un método que maneja excepciones de desbordamiento."],
+        ans: 1,
+        exp: "Un driver es un programa separado creado para invocar y verificar el comportamiento correcto de un método específico antes de integrar todo el programa."
+      },
+      {
+        q: "Dado el siguiente código, ¿cuál será el valor de 'number' después de invocar primFormalParam(number)?",
+        code: "int number = 6;\nprimFormalParam(number);\n// Dentro del método:\n// num = 15;",
+        opts: ["15, porque el método lo modifica.", "6, porque los parámetros de tipo primitivo no pueden modificar el original.", "0, porque se reinicia al salir del método.", "Se produce un error de compilación."],
+        ans: 1,
+        exp: "Parámetros de tipo primitivo se pasan por valor (copia). Cambiar num dentro del método no afecta a number en main. number sigue siendo 6."
+      }
+    ]
+  },
+
+  {
+    id: 1,
+    tag: "Capítulo 13",
+    title: "Recursión",
+    desc: "20 preguntas sobre definiciones recursivas, caso base, caso general, recursión directa/indirecta, recursión infinita y diseño de métodos recursivos.",
+    questions: [
+      {
+        q: "¿Qué es una definición recursiva?",
+        opts: ["Una definición que usa ciclos for para repetirse.", "Una definición en la que algo se define en términos de una versión menor de sí mismo.", "Una definición que nunca termina de ejecutarse.", "Una definición que solo funciona con números enteros."],
+        ans: 1,
+        exp: "Una definición recursiva es aquella en la que un problema se define en términos de una versión más pequeña del mismo problema."
+      },
+      {
+        q: "En la definición recursiva del factorial: 0!=1 y n!=n×(n-1)! para n>0, ¿cuál es el caso base?",
+        opts: ["n! = n × (n-1)!", "n > 0", "0! = 1", "n = n – 1"],
+        ans: 2,
+        exp: "El caso base es 0! = 1, porque es la condición que se resuelve directamente sin recurrir a la definición recursiva."
+      },
+      {
+        q: "¿Cuál es el propósito del caso base en una definición recursiva?",
+        opts: ["Incrementar la velocidad de ejecución del algoritmo.", "Detener la recursión proporcionando una solución directa (no recursiva).", "Inicializar las variables del método.", "Verificar que los parámetros sean válidos."],
+        ans: 1,
+        exp: "El caso base detiene la recursión al proveer una solución directa. Sin caso base, la recursión sería infinita."
+      },
+      {
+        q: "¿Qué es un método recursivo en Java?",
+        opts: ["Un método que llama a otro método diferente dentro de su cuerpo.", "Un método que se invoca a sí mismo durante su ejecución.", "Un método que contiene un ciclo while dentro de su cuerpo.", "Un método que usa la instrucción return más de una vez."],
+        ans: 1,
+        exp: "Un método recursivo es aquel cuyo cuerpo contiene una instrucción que lo invoca a sí mismo antes de completar la invocación actual."
+      },
+      {
+        q: "Al ejecutar fact(4) con el método recursivo factorial, ¿cuál es el resultado?",
+        opts: ["12", "16", "24", "120"],
+        ans: 2,
+        exp: "fact(4) = 4 × fact(3) = 4 × 3 × fact(2) = 4 × 3 × 2 × fact(1) = 4 × 3 × 2 × 1 × fact(0) = 4×3×2×1×1 = 24."
+      },
+      {
+        q: "¿Qué ocurre en la memoria cuando se ejecuta una recursión infinita?",
+        opts: ["El programa continúa ejecutándose para siempre sin problema.", "El sistema agota la memoria disponible y el programa termina de manera anormal.", "Java detecta el ciclo y lanza una advertencia al programador.", "El JVM reinicia automáticamente la ejecución desde el inicio."],
+        ans: 1,
+        exp: "Cada invocación recursiva consume memoria para variables locales y parámetros. Sin caso base, la memoria se agota produciendo un StackOverflowError."
+      },
+      {
+        q: "¿Qué es la recursión directa?",
+        opts: ["Cuando un método invoca a otro método diferente.", "Cuando un método se invoca a sí mismo directamente.", "Cuando dos métodos se invocan mutuamente.", "Cuando la recursión solo ocurre dentro de ciclos."],
+        ans: 1,
+        exp: "La recursión directa ocurre cuando un método contiene una llamada explícita a sí mismo en su propio cuerpo."
+      },
+      {
+        q: "¿Qué es la recursión indirecta?",
+        opts: ["Cuando el método recursivo no tiene caso base.", "Cuando un método A invoca a B, y eventualmente B (u otro método en la cadena) invoca a A.", "Cuando la recursión ocurre dentro de un ciclo for.", "Cuando el método invoca a un método de otra clase."],
+        ans: 1,
+        exp: "La recursión indirecta ocurre cuando A invoca a B y B invoca de vuelta a A (o en una cadena más larga), causando que A sea invocado indirectamente."
+      },
+      {
+        q: "¿Cuántas copias de sí mismo tiene lógicamente un método recursivo durante su ejecución?",
+        opts: ["Solo una copia que se reutiliza.", "Exactamente dos copias siempre.", "Cada invocación tiene su propio código y conjunto de variables, es decir, ilimitadas copias lógicas.", "El número de copias es igual al tamaño del arreglo de entrada."],
+        ans: 2,
+        exp: "Es útil pensar que cada invocación recursiva es una copia independiente con su propio código, parámetros y variables locales."
+      },
+      {
+        q: "¿Cuál de estas es una condición necesaria para que un algoritmo recursivo funcione correctamente?",
+        opts: ["Debe tener exactamente dos casos base.", "Cada invocación recursiva debe reducir el problema hacia un caso base.", "El método debe ser de tipo void.", "Los parámetros deben ser siempre de tipo int."],
+        ans: 1,
+        exp: "El caso general debe acercarse progresivamente al caso base. Si la reducción no lleva al caso base, se produce recursión infinita."
+      },
+      {
+        q: "Al diseñar un método recursivo, ¿cuál es el primer paso?",
+        opts: ["Escribir el código del caso general directamente.", "Comprender los requerimientos del problema y determinar las condiciones límite.", "Elegir entre iteración y recursión según el rendimiento.", "Declarar todas las variables globales que se necesiten."],
+        ans: 1,
+        exp: "El diseño recursivo empieza comprendiendo el problema, determinando condiciones límite, identificando casos base y luego los casos generales."
+      },
+      {
+        q: "¿Qué característica tienen generalmente los métodos recursivos respecto a su estructura de control?",
+        opts: ["Siempre usan ciclos for internamente.", "Usan una instrucción if...else o switch que distingue entre casos base y casos generales.", "Solo pueden tener una instrucción return.", "No pueden tener variables locales."],
+        ans: 1,
+        exp: "Los métodos recursivos típicamente usan if-else o switch para separar el caso base (solución directa) del caso general (invocación recursiva)."
+      },
+      {
+        q: "Para encontrar el elemento mayor en un arreglo de forma recursiva, el caso base es:",
+        opts: ["Cuando el arreglo tiene exactamente 2 elementos.", "Cuando el índice inferior es igual al índice superior (sublista de tamaño 1).", "Cuando el primer elemento es mayor que el último.", "Cuando todos los elementos son iguales."],
+        ans: 1,
+        exp: "El caso base del algoritmo recursivo de búsqueda del máximo es cuando la sublista tiene solo un elemento (indiceInferior == indiceSuperior)."
+      },
+      {
+        q: "En el método recursivo para Fibonacci, rFibNum(a, b, n), ¿cuántos casos base existen?",
+        opts: ["Uno (n=0)", "Dos (n=1 y n=2)", "Tres (n=0, n=1 y n=2)", "Ninguno, todo es recursivo"],
+        ans: 1,
+        exp: "La secuencia de Fibonacci tiene dos casos base: n=1 (retorna a) y n=2 (retorna b). Para n>2, usa la recursión."
+      },
+      {
+        q: "¿Cómo se define el caso general del método recursivo de Fibonacci rFibNum(a, b, n) para n > 2?",
+        opts: ["rFibNum(a, b, n-1)", "rFibNum(a, b, n-1) + rFibNum(a, b, n-2)", "rFibNum(a, b, n) + rFibNum(a, b, n+1)", "rFibNum(a+b, b, n-1)"],
+        ans: 1,
+        exp: "El enésimo número de Fibonacci es la suma de los dos anteriores: rFibNum(a,b,n) = rFibNum(a,b,n-1) + rFibNum(a,b,n-2)."
+      },
+      {
+        q: "¿Qué es un método recursivo de cola (tail recursive)?",
+        opts: ["Un método recursivo que solo acepta listas como parámetros.", "Un método recursivo en el cual la última instrucción ejecutada es la invocación recursiva.", "Un método que invoca a otro método al inicio de su ejecución.", "Un método que usa una cola (estructura de datos) internamente."],
+        ans: 1,
+        exp: "Un método recursivo de cola es aquel cuya última acción antes de retornar es la llamada recursiva. El método fact es un ejemplo."
+      },
+      {
+        q: "¿Cuál de las siguientes afirmaciones es FALSA sobre la recursión?",
+        opts: ["La recursión puede resolver problemas que serían muy complicados con iteración.", "Todo problema que se puede resolver con recursión también se puede resolver con iteración.", "Los métodos recursivos siempre son más eficientes en memoria que los iterativos.", "El caso base detiene la ejecución recursiva."],
+        ans: 2,
+        exp: "Los métodos recursivos típicamente consumen más memoria que los iterativos, porque cada invocación crea un nuevo marco de pila con sus propias variables."
+      },
+      {
+        q: "Al seguir la ejecución de fact(4), ¿en qué orden ocurren las devoluciones de valores?",
+        opts: ["fact(4) retorna primero, luego fact(3), etc.", "fact(0) retorna primero (1), luego fact(1)=1, fact(2)=2, fact(3)=6, fact(4)=24.", "Todas las llamadas retornan simultáneamente.", "fact(2) retorna primero porque es el valor medio."],
+        ans: 1,
+        exp: "Las devoluciones ocurren en orden inverso al de las llamadas: primero retorna el caso base (fact(0)=1), luego se propagan los valores de vuelta."
+      },
+      {
+        q: "¿Qué error produce en Java ejecutar un método con recursión infinita?",
+        opts: ["NullPointerException", "ArithmeticException", "StackOverflowError", "OutOfMemoryError inmediato"],
+        ans: 2,
+        exp: "Java lanza un StackOverflowError cuando la pila de llamadas se agota, lo que ocurre con recursión infinita (sin caso base o que nunca se alcanza)."
+      },
+      {
+        q: "¿Cuál es la principal ventaja de resolver problemas con recursión frente a la iteración?",
+        opts: ["Siempre es más rápida en tiempo de ejecución.", "Puede expresar soluciones de manera más natural y simple para ciertos problemas definidos recursivamente.", "Usa menos memoria del sistema en todos los casos.", "Permite usar menos variables en el programa."],
+        ans: 1,
+        exp: "Para problemas con estructura naturalmente recursiva (factorial, Fibonacci, búsqueda en árboles), la solución recursiva es más intuitiva y legible."
+      }
+    ]
+  },
+
+  {
+    id: 2,
+    tag: "Capítulo 14",
+    title: "Búsqueda y Ordenamiento",
+    desc: "20 preguntas sobre búsqueda secuencial, búsqueda binaria, ordenamiento por selección y ordenamiento por inserción.",
+    questions: [
+      {
+        q: "¿Cuál es la limitación principal de la búsqueda secuencial para listas largas?",
+        opts: ["Solo funciona con arreglos ordenados.", "En promedio hace la mitad del tamaño de la lista en comparaciones, haciéndola ineficiente para listas grandes.", "No puede encontrar elementos duplicados.", "Requiere que todos los elementos sean de tipo int."],
+        ans: 1,
+        exp: "La búsqueda secuencial recorre la lista elemento por elemento. En promedio hace n/2 comparaciones, lo que es muy costoso para listas de millones de elementos."
+      },
+      {
+        q: "¿Cuántas comparaciones clave hace la búsqueda secuencial si el elemento buscado NO está en una lista de 1000 elementos?",
+        opts: ["500 comparaciones en promedio.", "1000 comparaciones (debe revisar todos los elementos).", "250 comparaciones.", "Depende del tipo de dato de los elementos."],
+        ans: 1,
+        exp: "Si el elemento no está en la lista, la búsqueda secuencial debe comparar con cada uno de los 1000 elementos antes de concluir que no existe."
+      },
+      {
+        q: "¿Qué condición DEBE cumplir una lista para poder aplicar la búsqueda binaria?",
+        opts: ["La lista debe tener un número par de elementos.", "La lista debe estar ordenada.", "Todos los elementos deben ser positivos.", "La lista debe estar almacenada en una lista enlazada."],
+        ans: 1,
+        exp: "La búsqueda binaria requiere que la lista esté ordenada, ya que su estrategia de dividir a la mitad se basa en comparar con el elemento central."
+      },
+      {
+        q: "¿En qué consiste el algoritmo de ordenamiento por selección?",
+        opts: ["Insertar cada elemento en su posición correcta dentro de una sublista ya ordenada.", "Encontrar el elemento menor en la parte no ordenada y moverlo al inicio de esa parte, repetidamente.", "Comparar pares de elementos adyacentes e intercambiarlos si están en el orden incorrecto.", "Dividir la lista en mitades y ordenar cada mitad independientemente."],
+        ans: 1,
+        exp: "El ordenamiento por selección selecciona el elemento menor de la parte no ordenada y lo intercambia con el primer elemento de esa parte, en cada iteración."
+      },
+      {
+        q: "Para una lista de n elementos, ¿cuántas comparaciones clave hace exactamente el ordenamiento por selección?",
+        opts: ["n comparaciones", "n log n comparaciones", "n(n-1)/2 comparaciones", "3(n-1) comparaciones"],
+        ans: 2,
+        exp: "El ordenamiento por selección hace exactamente n(n-1)/2 comparaciones clave. Para n=1000, esto son 499,500 comparaciones."
+      },
+      {
+        q: "Para una lista de n elementos, ¿cuántas asignaciones de elementos hace el ordenamiento por selección?",
+        opts: ["n(n-1)/2 asignaciones", "n² asignaciones", "3(n-1) asignaciones", "n log n asignaciones"],
+        ans: 2,
+        exp: "El ordenamiento por selección realiza 3(n-1) asignaciones de elementos (tres asignaciones por intercambio, y se hacen n-1 intercambios)."
+      },
+      {
+        q: "¿Cuántos intercambios se necesitan para realizar un intercambio entre dos variables usando una variable temporal?",
+        opts: ["1 asignación", "2 asignaciones", "3 asignaciones", "4 asignaciones"],
+        ans: 2,
+        exp: "Para intercambiar lista[i] y lista[j]: temp = lista[i]; lista[i] = lista[j]; lista[j] = temp; — se necesitan 3 asignaciones."
+      },
+      {
+        q: "¿Cuál es la idea principal del ordenamiento por inserción?",
+        opts: ["Seleccionar el mayor elemento y colocarlo al final repetidamente.", "Insertar repetidamente un elemento de la parte no ordenada en su lugar correcto dentro de la parte ordenada.", "Dividir el arreglo en dos mitades iguales y ordenar cada una.", "Comparar elementos alternos del arreglo hasta que quede ordenado."],
+        ans: 1,
+        exp: "El ordenamiento por inserción toma cada elemento de la parte no ordenada y lo inserta en la posición correcta dentro de la sublista ya ordenada."
+      },
+      {
+        q: "En el ordenamiento por inserción, si lista[0..3] ya está ordenada y lista[4] = 23 con lista[3] = 30, ¿qué se debe hacer?",
+        opts: ["Nada, porque 23 ya está en su posición.", "Insertar 23 en su posición correcta dentro de lista[0..3], desplazando elementos.", "Intercambiar lista[4] con lista[0].", "Eliminar lista[3] e insertar 23 al final."],
+        ans: 1,
+        exp: "Como 23 < 30, hay que encontrar la posición correcta en la parte ordenada (entre 18 y 25 en el ejemplo del libro) e insertar desplazando."
+      },
+      {
+        q: "¿Cuál es la ventaja del ordenamiento por inserción sobre el ordenamiento por selección?",
+        opts: ["El ordenamiento por inserción usa menos memoria.", "El ordenamiento por inserción intenta reducir el número de comparaciones clave.", "El ordenamiento por inserción siempre hace menos intercambios.", "No hay ventaja, ambos algoritmos son equivalentes en todos los casos."],
+        ans: 1,
+        exp: "El libro menciona explícitamente que el ordenamiento por inserción intenta reducir el número de comparaciones clave respecto al ordenamiento por selección."
+      },
+      {
+        q: "En el algoritmo de ordenamiento por selección, ¿qué representa 'indiceMenor' durante la búsqueda del elemento menor?",
+        opts: ["El índice del elemento mayor de toda la lista.", "La posición donde se encontró el elemento menor en la parte no ordenada.", "El número de elementos ya ordenados.", "El valor del elemento menor encontrado."],
+        ans: 1,
+        exp: "indiceMenor guarda el índice (posición) del elemento menor encontrado hasta el momento en la parte no ordenada. Al final del recorrido, señala el menor real."
+      },
+      {
+        q: "¿Cuántas iteraciones del ciclo externo hace el ordenamiento por selección para una lista de n elementos?",
+        opts: ["n iteraciones", "n-1 iteraciones", "n/2 iteraciones", "n² iteraciones"],
+        ans: 1,
+        exp: "El ciclo externo va de indice=0 hasta indice < longitudLista - 1, es decir, hace n-1 iteraciones. Con n-1 elementos correctamente colocados, el último queda automáticamente en su lugar."
+      },
+      {
+        q: "Al iniciar el ordenamiento por selección en la primera iteración (indice=0), ¿qué sublista se considera como 'no ordenada'?",
+        opts: ["Solo el primer elemento lista[0].", "Solo los últimos n/2 elementos.", "Toda la lista: lista[0] hasta lista[longitudLista-1].", "Los elementos pares del arreglo."],
+        ans: 2,
+        exp: "Al inicio, toda la lista está sin ordenar. La parte no ordenada va disminuyendo conforme el algoritmo avanza en cada iteración."
+      },
+      {
+        q: "Después de la primera iteración del ordenamiento por selección en la lista [16, 30, 24, 7, 62, 45, 5, 55], ¿cómo queda?",
+        opts: ["[5, 30, 24, 7, 62, 45, 16, 55]", "[5, 7, 24, 30, 62, 45, 16, 55]", "[7, 16, 24, 30, 62, 45, 5, 55]", "[5, 7, 16, 24, 30, 45, 55, 62]"],
+        ans: 0,
+        exp: "El menor es 5 (posición 6), se intercambia con lista[0]=16. Resultado: [5, 30, 24, 7, 62, 45, 16, 55]."
+      },
+      {
+        q: "En la búsqueda secuencial, ¿por qué no se aprovecha el ordenamiento de la lista (si existe)?",
+        opts: ["Porque la búsqueda secuencial siempre asume que la lista está desordenada.", "Porque recorre todos los elementos sin detenerse cuando ya sería imposible encontrar el elemento buscado.", "Porque Java no permite verificar el orden de un arreglo.", "Porque el compilador optimiza automáticamente la búsqueda secuencial."],
+        ans: 0,
+        exp: "El algoritmo de búsqueda secuencial no supone que la lista esté ordenada y no usa esa propiedad para mejorar la búsqueda, revisando todos los elementos."
+      },
+      {
+        q: "¿Para qué sirve una 'variable temporal' (temp) en el algoritmo de intercambio del ordenamiento por selección?",
+        opts: ["Para almacenar el índice del elemento menor.", "Para no perder el valor de un elemento al sobrescribirlo durante el intercambio.", "Para contar el número de comparaciones realizadas.", "Para almacenar el número de elementos ya ordenados."],
+        ans: 1,
+        exp: "Al intercambiar A y B, si se hace A=B directamente se pierde el valor de A. La variable temp guarda A antes de sobrescribirlo: temp=A; A=B; B=temp."
+      },
+      {
+        q: "¿Qué tipo de estructura se usa para almacenar una lista en los algoritmos de ordenamiento y búsqueda descritos en el capítulo?",
+        opts: ["Lista enlazada (LinkedList)", "Arreglo unidimensional (array)", "Árbol binario de búsqueda", "HashMap"],
+        ans: 1,
+        exp: "Los algoritmos del capítulo 14 trabajan sobre listas almacenadas en arreglos unidimensionales. Es conveniente porque todos los valores son del mismo tipo."
+      },
+      {
+        q: "¿Cuál de estas operaciones NO se menciona como operación básica en el procesamiento de listas del capítulo 14?",
+        opts: ["Buscar un elemento en la lista", "Ordenar la lista", "Calcular el promedio de los elementos", "Insertar un elemento en la lista"],
+        ans: 2,
+        exp: "Las operaciones básicas mencionadas son: buscar, ordenar, insertar y eliminar. Calcular el promedio no es una operación básica de lista en este contexto."
+      },
+      {
+        q: "¿Cómo se declara el tamaño de un arreglo que almacena una lista si el tamaño puede aumentar o disminuir dinámicamente?",
+        opts: ["Se declara exactamente con el número de elementos actuales.", "Se declara con el tamaño máximo posible que la lista puede tener.", "No se puede usar un arreglo para listas dinámicas en Java.", "Se usa un int variable para cambiar el tamaño del arreglo en tiempo de ejecución."],
+        ans: 1,
+        exp: "Para listas con tamaño variable, el arreglo se declara con el tamaño máximo que podría tener la lista. Se usa una variable separada para rastrear el tamaño actual."
+      },
+      {
+        q: "En la segunda iteración del ordenamiento por selección sobre [5, 30, 24, 7, 62, 45, 16, 55], ¿cuál es el elemento menor de la parte no ordenada y dónde queda?",
+        opts: ["5 en posición 0 (ya está)", "7 en posición 3, se intercambia con posición 1 quedando [5, 7, 24, 30, 62, 45, 16, 55]", "16 en posición 6, se mueve a posición 1", "24 en posición 2, ya está en su lugar correcto"],
+        ans: 1,
+        exp: "La parte no ordenada es lista[1..7]. El menor es 7 (posición 3). Se intercambia con lista[1]=30. Resultado: [5, 7, 24, 30, 62, 45, 16, 55]."
+      }
+    ]
+  },
+
+  {
+    id: 3,
+    tag: "Capítulo 9",
+    title: "Pilas (Stacks)",
+    desc: "20 preguntas sobre el concepto de pila, operaciones LIFO, implementación con arrays, clase PilaLineal, desbordamiento y gestión de errores.",
+    questions: [
+      {
+        q: "¿Cuál es la propiedad característica de una pila (stack) como estructura de datos?",
+        opts: ["Los elementos se insertan y eliminan por extremos opuestos.", "Los elementos se insertan y eliminan por el mismo extremo: la cima.", "Se puede acceder a cualquier elemento en orden aleatorio.", "Los elementos se ordenan automáticamente al insertarse."],
+        ans: 1,
+        exp: "La propiedad fundamental de una pila es que todas las operaciones (insertar y quitar) se realizan por el mismo extremo: la cima (top)."
+      },
+      {
+        q: "¿Qué significan las siglas LIFO aplicadas a las pilas?",
+        opts: ["Last Input Formal Output", "Last-in, First-out (último en entrar, primero en salir)", "Linear Input, Fast Output", "Linked Input, Free Output"],
+        ans: 1,
+        exp: "LIFO significa 'Last-in, First-out': el último elemento añadido a la pila es el primero que se extrae de ella."
+      },
+      {
+        q: "¿Qué hace la operación push (Insertar) en una pila?",
+        opts: ["Elimina el elemento de la cima.", "Añade un elemento en la cima de la pila.", "Consulta el elemento de la cima sin eliminarlo.", "Vacía completamente la pila."],
+        ans: 1,
+        exp: "La operación push/insertar añade un nuevo elemento en la cima de la pila, incrementando el puntero cima."
+      },
+      {
+        q: "¿Qué hace la operación pop (Quitar) en una pila?",
+        opts: ["Añade un elemento en la cima.", "Elimina o extrae el elemento que está en la cima de la pila.", "Mueve el elemento de la cima al fondo.", "Duplica el elemento de la cima."],
+        ans: 1,
+        exp: "La operación pop/quitar elimina el elemento que está en la cima de la pila y lo devuelve, decrementando el puntero cima."
+      },
+      {
+        q: "¿Qué es el desbordamiento negativo (underflow) en una pila?",
+        opts: ["Intentar insertar en una pila llena.", "Intentar sacar un elemento de una pila vacía.", "Cuando el puntero cima supera el tamaño máximo del array.", "Cuando se insertan valores negativos en la pila."],
+        ans: 1,
+        exp: "El underflow ocurre cuando un programa intenta extraer (pop) un elemento de una pila que ya está vacía, lo cual es una operación imposible."
+      },
+      {
+        q: "¿Qué es el desbordamiento (overflow) en una pila implementada con array?",
+        opts: ["Intentar sacar un elemento de una pila vacía.", "Intentar insertar un elemento en una pila que ya está llena.", "Cuando la pila tiene más de 100 elementos.", "Cuando el valor insertado supera el rango del tipo de dato."],
+        ans: 1,
+        exp: "El overflow ocurre cuando se intenta insertar (push) un elemento en una pila que ya alcanzó su capacidad máxima (pila llena)."
+      },
+      {
+        q: "En la implementación de PilaLineal con array, ¿qué valor tiene 'cima' cuando la pila está vacía?",
+        opts: ["0", "1", "-1", "TAMPILA - 1"],
+        ans: 2,
+        exp: "La condición de pila vacía se establece inicializando cima = -1. Significa que no hay ningún elemento en la pila."
+      },
+      {
+        q: "¿En qué posición del array se encuentra el fondo de la pila en la implementación de PilaLineal?",
+        opts: ["En la posición TAMPILA - 1", "En la posición cima - 1", "En la posición 0", "En cualquier posición según el último push"],
+        ans: 2,
+        exp: "El fondo de la pila está en la posición 0 del array. Los elementos se van apilando hacia posiciones mayores."
+      },
+      {
+        q: "Al ejecutar push en la implementación con array, ¿qué ocurre con el puntero 'cima'?",
+        opts: ["Se decrementa en 1 antes de almacenar.", "Se incrementa en 1 antes de almacenar el elemento.", "No cambia; el elemento se inserta en la posición 0.", "Se reinicia a 0 en cada inserción."],
+        ans: 1,
+        exp: "Al insertar: primero se incrementa cima en 1 (cima++) y luego se almacena el elemento en listaPila[cima]."
+      },
+      {
+        q: "Al ejecutar pop en la implementación con array, ¿cuál es el orden correcto de las operaciones?",
+        opts: ["Decrementar cima, luego leer el elemento.", "Leer el elemento en la posición actual de cima, luego decrementar cima.", "Leer listaPila[0], luego mover todos los elementos una posición.", "Copiar la cima al fondo, luego decrementar."],
+        ans: 1,
+        exp: "En pop: primero se lee el valor en listaPila[cima] (guardándolo para retornarlo), y luego se decrementa cima en 1."
+      },
+      {
+        q: "¿Qué hace el método cimaPila() en la clase PilaLineal?",
+        opts: ["Elimina el elemento de la cima y lo retorna.", "Retorna el valor de la cima sin eliminarlo ni modificar la pila.", "Mueve el elemento de la cima al fondo.", "Retorna el índice numérico de la cima."],
+        ans: 1,
+        exp: "cimaPila() permite consultar el elemento en la cima sin extraerlo, dejando la pila intacta. No decrementa el puntero."
+      },
+      {
+        q: "¿Qué retorna el método pilaVacia() cuando la pila no tiene elementos?",
+        opts: ["null", "0", "true", "false"],
+        ans: 2,
+        exp: "pilaVacia() retorna true cuando la pila está vacía (cima == -1), y false cuando hay al menos un elemento."
+      },
+      {
+        q: "Si se insertan los números 5, 10, 15 en la pila (en ese orden) y luego se hace pop, ¿qué valor se obtiene?",
+        opts: ["5", "10", "15", "0"],
+        ans: 2,
+        exp: "LIFO: el último en entrar es el primero en salir. El 15 fue el último en insertarse, por lo tanto es el primero en salir con pop."
+      },
+      {
+        q: "¿Cuál es la estructura interna principal de la clase PilaLineal en su implementación con array?",
+        opts: ["Una lista enlazada y un contador.", "Un array (listaPila) y un entero (cima) que apunta al último elemento.", "Dos arrays: uno para datos y otro para índices.", "Un árbol binario de búsqueda."],
+        ans: 1,
+        exp: "PilaLineal usa un array (listaPila) para guardar los elementos y un entero (cima) como puntero/índice al elemento en la cima."
+      },
+      {
+        q: "¿Por qué se declara cima = -1 y no cima = 0 como condición de pila vacía?",
+        opts: ["Por convención matemática histórica.", "Porque la posición 0 es el primer elemento válido; -1 indica que no hay ningún elemento.", "Porque Java indexa arrays desde -1.", "Para que pilaLlena() funcione correctamente."],
+        ans: 1,
+        exp: "El índice 0 es la primera posición válida del array. Usar -1 para cima vacío indica que no se ha insertado ningún elemento aún."
+      },
+      {
+        q: "¿Qué sucede al llamar limpiarPila() en la clase PilaLineal?",
+        opts: ["Elimina el array interno y crea uno nuevo.", "Reasigna cima = -1, vaciando lógicamente la pila.", "Borra el contenido de cada celda del array con 0.", "Libera la memoria de todos los objetos en la pila."],
+        ans: 1,
+        exp: "limpiarPila() simplemente reinicia cima = -1. Esto vacía lógicamente la pila sin necesidad de borrar físicamente los datos del array."
+      },
+      {
+        q: "¿Para qué se usan las pilas en el contexto de compiladores y sistemas operativos?",
+        opts: ["Para almacenar archivos del sistema de forma permanente.", "Para aplicaciones como evaluación de expresiones aritméticas y organización de la memoria.", "Para ordenar datos de manera eficiente.", "Para mantener registros de usuarios autenticados."],
+        ans: 1,
+        exp: "Las pilas tienen aplicaciones en compiladores (evaluación de expresiones, llamadas a métodos), sistemas operativos (gestión de llamadas, memoria de pila) y más."
+      },
+      {
+        q: "¿Cuál es la condición de pila llena en una implementación con array de tamaño TAMPILA?",
+        opts: ["cima == 0", "cima == TAMPILA", "cima == TAMPILA - 1", "cima == -1"],
+        ans: 2,
+        exp: "La pila está llena cuando cima apunta a la última posición válida del array: TAMPILA - 1 (ya que los índices van de 0 a TAMPILA-1)."
+      },
+      {
+        q: "¿Qué ocurre en la implementación de la clase PilaLineal si se intenta hacer push en una pila llena?",
+        opts: ["El elemento sobrescribe la cima actual silenciosamente.", "Se genera una excepción (Exception) de desbordamiento.", "El array se redimensiona automáticamente.", "El método push retorna false sin insertar."],
+        ans: 1,
+        exp: "Si pilaLlena() es true, el método insertar() lanza una Exception('Desbordamiento pila'), indicando error al intentar insertar en pila llena."
+      },
+      {
+        q: "¿Cuál de las siguientes implementaciones de pila es dinámica (sin límite fijo de tamaño excepto la memoria)?",
+        opts: ["Implementación con array estático.", "Implementación con Vector.", "Implementación con lista enlazada.", "Tanto la lista enlazada como el Vector son dinámicas."],
+        ans: 3,
+        exp: "Tanto las listas enlazadas como los Vector de Java permiten crecer dinámicamente. El array es estático (tamaño fijo). La lista enlazada y el Vector son ambas dinámicas."
+      }
+    ]
+  },
+
+  {
+    id: 4,
+    tag: "Capítulo 10",
+    title: "Colas (Queues)",
+    desc: "20 preguntas sobre el concepto de cola, FIFO, implementación con arrays lineales y circulares, bicolas y operaciones del TAD Cola.",
+    questions: [
+      {
+        q: "¿Cuál es la propiedad fundamental de una cola (queue) como estructura de datos?",
+        opts: ["Los elementos se insertan y eliminan por el mismo extremo.", "Los elementos se insertan por el extremo final y se eliminan por el extremo frente (opuesto).", "Se puede acceder a cualquier elemento en O(1).", "Los elementos se ordenan automáticamente al insertarse."],
+        ans: 1,
+        exp: "La cola tiene dos extremos: los elementos entran por el final (fin) y salen por el frente. Esto garantiza el orden FIFO."
+      },
+      {
+        q: "¿Qué significan las siglas FIFO aplicadas a las colas?",
+        opts: ["Fast Input, Fast Output", "First-in, First-out (primero en entrar, primero en salir)", "Fixed Index, Free Output", "File Input, File Output"],
+        ans: 1,
+        exp: "FIFO significa 'First-in, First-out': el primer elemento insertado en la cola es el primero en ser extraído."
+      },
+      {
+        q: "¿Cuál de estos escenarios reales es un ejemplo de cola (FIFO)?",
+        opts: ["Una pila de platos en un restaurante.", "Una fila de clientes esperando ser atendidos en una tienda.", "Un historial de navegación web (atrás/adelante).", "El sistema de deshacer (Ctrl+Z) en un editor de texto."],
+        ans: 1,
+        exp: "La fila de clientes es FIFO: el primero en llegar es el primero en ser atendido. Las pilas de platos y el Ctrl+Z son LIFO."
+      },
+      {
+        q: "¿Qué hace la operación Insertar en una cola?",
+        opts: ["Añade un elemento por el extremo frente de la cola.", "Añade un elemento por el extremo final de la cola.", "Elimina el elemento del frente de la cola.", "Intercambia el frente y el fin de la cola."],
+        ans: 1,
+        exp: "En una cola, Insertar añade el nuevo elemento por el extremo final (fin), nunca por el frente."
+      },
+      {
+        q: "¿Qué hace la operación Quitar en una cola?",
+        opts: ["Elimina el elemento del extremo final.", "Elimina el elemento del extremo frente de la cola.", "Elimina todos los elementos de la cola.", "Retorna el elemento del fin sin eliminarlo."],
+        ans: 1,
+        exp: "La operación Quitar extrae y retorna el elemento que está en el frente de la cola, el cual fue el primero en insertarse."
+      },
+      {
+        q: "En la implementación de ColaLineal con array, ¿con qué valores se inicializan frente y fin al crear una cola vacía?",
+        opts: ["frente = 0, fin = 0", "frente = -1, fin = -1", "frente = 0, fin = -1", "frente = 1, fin = 0"],
+        ans: 2,
+        exp: "ColaLineal inicializa frente = 0 y fin = -1. El primer elemento se insertará en listaCola[0] (fin pasa a 0)."
+      },
+      {
+        q: "¿Cuál es el grave problema del array lineal para implementar una cola?",
+        opts: ["No permite almacenar tipos de datos primitivos.", "El puntero fin puede alcanzar el índice más alto del array aunque queden posiciones libres al inicio (por extracciones previas).", "El acceso a los extremos es demasiado lento.", "No se puede verificar si la cola está vacía."],
+        ans: 1,
+        exp: "Con array lineal, al extraer elementos el frente avanza dejando huecos al inicio. Fin puede llegar al final del array aunque haya posiciones libres sin usar antes del frente."
+      },
+      {
+        q: "¿Cómo resuelve el array circular el problema del array lineal para colas?",
+        opts: ["Duplica el tamaño del array cuando se llena.", "Une el extremo final del array con el extremo inicial, permitiendo reutilizar posiciones liberadas.", "Desplaza todos los elementos al inicio cada vez que se hace una extracción.", "Usa índices negativos para las posiciones liberadas."],
+        ans: 1,
+        exp: "El array circular conecta el fin con el inicio usando aritmética modular (% MAXTAMQ), permitiendo reutilizar posiciones liberadas por extracciones."
+      },
+      {
+        q: "¿Qué fórmula se usa para avanzar el puntero en un array circular de tamaño MAXTAMQ?",
+        opts: ["siguiente = actual + 1", "siguiente = actual * 2 % MAXTAMQ", "siguiente = (actual + 1) % MAXTAMQ", "siguiente = actual - 1 + MAXTAMQ"],
+        ans: 2,
+        exp: "La teoría de restos: (actual + 1) % MAXTAMQ genera los índices 0, 1, 2, ..., MAXTAMQ-1, 0, 1, ... (circular)."
+      },
+      {
+        q: "En el array circular, ¿por qué se sacrifica una posición del array para diferenciar cola vacía de cola llena?",
+        opts: ["Para que los índices empiecen en 1 en lugar de 0.", "Porque frente y fin tendrían la misma relación en ambos casos sin esa distinción, haciendo imposible diferenciarlos.", "Para mejorar el rendimiento de las operaciones.", "Porque Java requiere un espacio de buffer en los arrays."],
+        ans: 1,
+        exp: "Sin sacrificar una posición, la condición frente == siguiente(fin) se cumpliría tanto para cola vacía como para cola llena, lo que sería ambiguo."
+      },
+      {
+        q: "¿Cuál es la condición de cola vacía en el array circular según el texto?",
+        opts: ["frente == fin", "frente == siguiente(fin)", "fin == -1", "frente > MAXTAMQ"],
+        ans: 1,
+        exp: "En el array circular, la cola está vacía cuando frente == siguiente(fin), es decir, frente está inmediatamente después de fin en el recorrido circular."
+      },
+      {
+        q: "¿Cuál es la capacidad máxima de elementos que puede almacenar una cola con array circular de tamaño MAXTAMQ?",
+        opts: ["MAXTAMQ elementos", "MAXTAMQ + 1 elementos", "MAXTAMQ - 1 elementos", "MAXTAMQ / 2 elementos"],
+        ans: 2,
+        exp: "Al sacrificar una posición para distinguir cola llena de cola vacía, la capacidad real es MAXTAMQ - 1 elementos."
+      },
+      {
+        q: "¿Qué devuelve la operación frenteCola() en la clase ColaLineal?",
+        opts: ["El elemento del fin de la cola.", "El índice numérico del frente.", "El elemento que está en el frente sin eliminarlo de la cola.", "El número de elementos en la cola."],
+        ans: 2,
+        exp: "frenteCola() retorna listaCola[frente] (el primer elemento) sin modificar los punteros, dejando la cola intacta."
+      },
+      {
+        q: "¿En qué contexto de computación se usa una cola de impresión (print spooler)?",
+        opts: ["Para ordenar los trabajos por tamaño antes de imprimir.", "Para gestionar múltiples trabajos de impresión y enviarlos a la impresora en el orden en que llegaron.", "Para priorizar documentos por usuario.", "Para comprimir archivos antes de enviarlos a la impresora."],
+        ans: 1,
+        exp: "El spooler de impresión usa una cola FIFO: los trabajos se imprimen en el mismo orden en que fueron recibidos, independientemente de su tamaño."
+      },
+      {
+        q: "¿Qué es una bicola (deque - double-ended queue)?",
+        opts: ["Una cola que solo permite inserciones, no extracciones.", "Una estructura donde se puede insertar y extraer elementos desde cualquiera de los dos extremos.", "Dos colas enlazadas en serie.", "Una cola que ordena sus elementos automáticamente."],
+        ans: 1,
+        exp: "Una bicola permite insertar y extraer por ambos extremos (frente y fin), generalizando tanto la cola como la pila."
+      },
+      {
+        q: "¿Qué es una bicola con restricción de entrada?",
+        opts: ["Solo permite inserciones por un extremo, pero permite extracciones por los dos extremos.", "Solo permite extracciones por un extremo, pero permite inserciones por los dos.", "No permite insertar elementos duplicados.", "Limita el número máximo de elementos insertados."],
+        ans: 0,
+        exp: "La bicola con restricción de entrada solo permite insertar por uno de los extremos, pero puede extraer por cualquiera de los dos."
+      },
+      {
+        q: "¿Cuál de estas NO es una operación definida en el TAD Cola según las especificaciones del capítulo?",
+        opts: ["CrearCola", "Insertar", "Ordenar", "Quitar"],
+        ans: 2,
+        exp: "Las operaciones del TAD Cola son: CrearCola, Insertar, Quitar, ColaVacía, ColaLlena, Frente y Tamaño. 'Ordenar' no es una operación del TAD Cola."
+      },
+      {
+        q: "¿Por qué se considera ineficiente la implementación de cola con array lineal?",
+        opts: ["Porque requiere comparar todos los elementos al insertar.", "Porque puede alcanzar la condición de cola llena aun existiendo posiciones libres en el array.", "Porque no permite almacenar objetos, solo primitivos.", "Porque el acceso al frente requiere O(n) tiempo."],
+        ans: 1,
+        exp: "El libro advierte: se puede alcanzar 'cola llena' cuando todavía hay posiciones vacías antes del frente. Por eso recomienda no usar esta implementación."
+      },
+      {
+        q: "En la clase ColaLineal con array lineal, ¿qué hace borrarCola()?",
+        opts: ["Elimina el array y crea uno nuevo.", "Reasigna frente = 0 y fin = -1, vaciando lógicamente la cola.", "Elimina uno por uno todos los elementos.", "Lleva todos los elementos al inicio del array."],
+        ans: 1,
+        exp: "borrarCola() reinicia los punteros: frente = 0 y fin = -1, que es la condición inicial de cola vacía, sin borrar físicamente los datos."
+      },
+      {
+        q: "¿Por qué implementar la clase Bicola con herencia de la clase ColaLista es más eficiente que implementarla desde cero?",
+        opts: ["Porque herencia siempre es más rápida en Java.", "Porque Bicola hereda todos los métodos y atributos de ColaLista, y solo necesita agregar las operaciones nuevas (ponerFrente, quitarFinal, etc.).", "Porque así Bicola no necesita declarar los atributos frente y fin.", "Porque Java optimiza automáticamente las clases con herencia."],
+        ans: 1,
+        exp: "Con 'extends ColaLista', la clase Bicola reutiliza todo el código existente de ColaLista. Solo se implementan los métodos exclusivos de la bicola, evitando duplicación."
+      }
+    ]
+  }
+];
+
+// =============================================================
+// STATE
+// =============================================================
+let state = {
+  answered: {}, // key: "cap-q" => {correct: bool}
+};
+
+// =============================================================
+// BUILD UI
+// =============================================================
+function buildUI() {
+  const container = document.getElementById('sections-container');
+  container.innerHTML = '';
+
+  chapters.forEach((ch, ci) => {
+    const sec = document.createElement('div');
+    sec.className = 'section' + (ci === 0 ? ' visible' : '');
+    sec.id = 'section-' + ci;
+
+    const scoreHtml = `<div class="section-score">
+      <span>Sección: <strong id="sec-score-${ci}">0 / ${ch.questions.length}</strong></span>
+      <button class="reset-btn" onclick="resetSection(${ci})">↺ Reiniciar sección</button>
+    </div>`;
+
+    const qHtml = ch.questions.map((q, qi) => buildQuestion(q, ci, qi)).join('');
+
+    sec.innerHTML = `
+      <div class="section-header">
+        <div class="chapter-tag">${ch.tag}</div>
+        <h2>${ch.title}</h2>
+        <p>${ch.desc}</p>
+      </div>
+      ${scoreHtml}
+      ${qHtml}
+    `;
+    container.appendChild(sec);
+  });
+
+  updateProgress();
+}
+
+function buildQuestion(q, ci, qi) {
+  const key = `${ci}-${qi}`;
+  const answered = state.answered[key];
+
+  const optHtml = ['a','b','c','d'].map((letter, oi) => {
+    let cls = 'option-btn';
+    if (answered !== undefined) {
+      if (oi === q.ans) cls += ' correct';
+      else if (oi === answered.chosen) cls += ' wrong';
+    }
+    const disabled = answered !== undefined ? 'disabled' : '';
+    return `<button class="option-btn ${answered !== undefined ? (oi === q.ans ? 'correct' : (oi === answered.chosen ? 'wrong' : '')) : ''}" 
+      ${disabled} onclick="answer(${ci}, ${qi}, ${oi})">
+      <span class="opt-letter">${letter}</span>
+      <span>${q.opts[oi]}</span>
+    </button>`;
+  }).join('');
+
+  let feedbackHtml = '';
+  if (answered !== undefined) {
+    const cls2 = answered.correct ? 'ok' : 'no';
+    const icon = answered.correct ? '✓ Correcto.' : '✗ Incorrecto.';
+    feedbackHtml = `<div class="feedback show ${cls2}">${icon} ${q.exp}</div>`;
+  }
+
+  const cardCls = answered !== undefined ? (answered.correct ? 'answered-correct' : 'answered-wrong') : '';
+  const codeHtml = q.code ? `<pre class="q-code">${q.code}</pre>` : '';
+
+  return `<div class="question-card ${cardCls}" id="card-${ci}-${qi}">
+    <div class="q-header">
+      <div class="q-num">${String(qi+1).padStart(2,'0')}</div>
+      <div class="q-text">${q.q}</div>
+    </div>
+    ${codeHtml}
+    <div class="options" id="opts-${ci}-${qi}">${optHtml}</div>
+    ${feedbackHtml}
+  </div>`;
+}
+
+// =============================================================
+// ANSWER
+// =============================================================
+function answer(ci, qi, chosen) {
+  const key = `${ci}-${qi}`;
+  if (state.answered[key] !== undefined) return;
+
+  const q = chapters[ci].questions[qi];
+  const correct = chosen === q.ans;
+  state.answered[key] = { chosen, correct };
+
+  // Update card
+  const card = document.getElementById(`card-${ci}-${qi}`);
+  card.classList.add(correct ? 'answered-correct' : 'answered-wrong');
+
+  // Update buttons
+  const optsDiv = document.getElementById(`opts-${ci}-${qi}`);
+  const btns = optsDiv.querySelectorAll('.option-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.ans) btn.classList.add('correct');
+    else if (i === chosen) btn.classList.add('wrong');
+  });
+
+  // Add feedback
+  const fb = document.createElement('div');
+  fb.className = `feedback show ${correct ? 'ok' : 'no'}`;
+  fb.innerHTML = `${correct ? '✓ Correcto.' : '✗ Incorrecto.'} ${q.exp}`;
+  card.appendChild(fb);
+
+  updateScores();
+}
+
+// =============================================================
+// SCORES & PROGRESS
+// =============================================================
+function updateScores() {
+  let totalCorrect = 0;
+  let totalAnswered = 0;
+
+  chapters.forEach((ch, ci) => {
+    let secCorrect = 0;
+    ch.questions.forEach((_, qi) => {
+      const k = `${ci}-${qi}`;
+      if (state.answered[k] !== undefined) {
+        totalAnswered++;
+        if (state.answered[k].correct) { secCorrect++; totalCorrect++; }
+      }
+    });
+    const el = document.getElementById(`sec-score-${ci}`);
+    if (el) el.textContent = `${secCorrect} / ${ch.questions.length}`;
+  });
+
+  document.getElementById('total-correct').textContent = totalCorrect;
+  document.getElementById('total-answered').textContent = totalAnswered;
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = chapters.reduce((s, ch) => s + ch.questions.length, 0);
+  const answered = Object.keys(state.answered).length;
+  document.getElementById('progress-bar').style.width = ((answered / total) * 100) + '%';
+}
+
+// =============================================================
+// NAVIGATION
+// =============================================================
+function showSection(idx) {
+  document.querySelectorAll('.section').forEach((s, i) => {
+    s.classList.toggle('visible', i === idx);
+  });
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === idx);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// =============================================================
+// RESET
+// =============================================================
+function resetSection(ci) {
+  chapters[ci].questions.forEach((_, qi) => {
+    delete state.answered[`${ci}-${qi}`];
+  });
+  buildUI();
+  showSection(ci);
+  updateScores();
+}
+
+function resetAll() {
+  state.answered = {};
+  buildUI();
+  updateScores();
+}
+
+// =============================================================
+// INIT
+// =============================================================
+buildUI();
+updateScores();
+</script>
+</body>
+</html>
